@@ -1579,6 +1579,8 @@ function showCompletionAlert(showPrompt) {
     // confirm(<msg>, false) makes "Yes" the default (at Baden's request).
     makePromo = confirm(alertHed  + alertText, false);
   } else {
+    //REUTERS modified to give you script to copy into your JS file. 
+    alertText += rule + "\rCOPY TO JS\r\rimport "+docName+" from '../templates/"+docName+".html'\r$('#"+docName+"').html("+docName+"())\r\r" ;
     alertText += rule + "ai2html-nyt5 v" + scriptVersion;
     alert(alertHed + alertText);
     makePromo = false;
@@ -2236,6 +2238,7 @@ function cleanHtmlTags(str) {
   return tagName ? straightenCurlyQuotesInsideAngleBrackets(str) : str;
 }
 
+//REUTERS modified to include gettext tags.
 function generateParagraphHtml(pData, baseStyle, pStyles, cStyles) {
   var html, diff, range, rangeHtml;
   if (pData.text.length === 0) { // empty pg
@@ -2246,21 +2249,21 @@ function generateParagraphHtml(pData, baseStyle, pStyles, cStyles) {
   diff = objectDiff(pData.cssStyle, baseStyle);
   // Give the pg a class, if it has a different style than the base pg class
   if (diff) {
-    html = '<p class="' + getTextStyleClass(diff, pStyles, 'pstyle') + '">';
+    html = '<p class="' + getTextStyleClass(diff, pStyles, 'pstyle') + '"><%=gettext("';
   } else {
-    html = '<p>';
+    html = '<p><%=gettext("';
   }
   for (var j=0; j<pData.ranges.length; j++) {
     range = pData.ranges[j];
     rangeHtml = cleanHtmlText(cleanHtmlTags(range.text));
     diff = objectDiff(range.cssStyle, pData.cssStyle);
     if (diff) {
-      rangeHtml = '<span class="' +
-      getTextStyleClass(diff, cStyles, 'cstyle') + '">' + rangeHtml + '</span>';
+      rangeHtml = '")%><span class="' +
+      getTextStyleClass(diff, cStyles, 'cstyle') + '"><%=gettext("' + rangeHtml + '")%></span><%=gettext("';
     }
     html += rangeHtml;
   }
-  html += '</p>';
+  html += '")%></p>';
   return html;
 }
 
@@ -4057,7 +4060,8 @@ function outputLocalPreviewPage(textForFile, localPreviewDestination, settings) 
 
 function addCustomContent(content, customBlocks) {
   if (customBlocks.css) {
-    content.css += "\r\t/* Custom CSS */\r\t" + customBlocks.css.join('\r\t') + '\r';
+  	//REUTERS, modified to remove comment in css.
+    content.css += customBlocks.css.join('\r\t') + '\r';
     /*
     content = "\r\t<style type='text/css' media='screen,print'>\r" +
       "\t\t" + customBlocks.css.join('\r\t\t') +
