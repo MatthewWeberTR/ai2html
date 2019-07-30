@@ -892,15 +892,13 @@ function main() {
     'mix-blend-mode',
   ];
 
-  var nyt5Breakpoints = [
-    { name: 'xsmall', lowerLimit: 0, upperLimit: 180 },
-    { name: 'small', lowerLimit: 180, upperLimit: 300 },
-    { name: 'smallplus', lowerLimit: 300, upperLimit: 460 },
-    { name: 'submedium', lowerLimit: 460, upperLimit: 600 },
-    { name: 'medium', lowerLimit: 600, upperLimit: 720 },
-    { name: 'large', lowerLimit: 720, upperLimit: 945 },
-    { name: 'xlarge', lowerLimit: 945, upperLimit: 1050 },
-    { name: 'xxlarge', lowerLimit: 1050, upperLimit: 1600 },
+  var reutersBreakpoints = [
+    { name: 'xs', lowerLimit: 0, upperLimit: 320 },
+    { name: 'ss', lowerLimit: 320, upperLimit: 450 },
+    { name: 'sm', lowerLimit: 450, upperLimit: 768 },
+    { name: 'md', lowerLimit: 768, upperLimit: 769 },
+    { name: 'lg', lowerLimit: 769, upperLimit: 1024 },
+    { name: 'xl', lowerLimit: 1024, upperLimit: 1200 },
   ];
 
   var cssPrecision = 4;
@@ -1044,7 +1042,7 @@ function main() {
     // ========================
     // (can have more than one artboard per breakpoint)
     // TODO: remove nyt-specific breakpoint code, generalize breakpoints for all environments
-    var breakpoints = assignBreakpointsToArtboards(nyt5Breakpoints);
+    var breakpoints = assignBreakpointsToArtboards(reutersBreakpoints);
 
     if (scriptEnvironment == 'nyt-preview') {
       if (
