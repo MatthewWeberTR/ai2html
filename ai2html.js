@@ -643,21 +643,6 @@ function main() {
     // TODO: remove nyt-specific breakpoint code, generalize breakpoints for all environments
     var breakpoints = assignBreakpointsToArtboards(reutersBreakpoints);
 
-    if (scriptEnvironment == 'nyt-preview') {
-      if (
-        settings.max_width &&
-        !contains(breakpoints, function(bp) {
-          return +settings.max_width == bp.upperLimit;
-        })
-      ) {
-        warn(
-          'The max_width setting of "' +
-            settings.max_width +
-            '" is not a valid breakpoint and will create an error when you "preview publish."'
-        );
-      }
-    }
-
     // ================================================
     // Generate HTML, CSS and images for each artboard
     // ================================================
@@ -1434,35 +1419,6 @@ function main() {
     alert('Info:\n' + msg);
   }
 
-  function detectScriptEnvironment() {
-    var env = detectTimesFonts() ? 'nyt' : '';
-    // Handle case where user seems to be at NYT but is running ai2html outside of Preview
-    if (env == 'nyt' && !fileExists(docPath + '../config.yml')) {
-      if (
-        confirm(
-          'You seem to be running ai2html outside of NYT Preview.\nContinue in non-Preview mode?',
-          true
-        )
-      ) {
-        env = ''; // switch to non-nyt context
-      } else {
-        error('Ai2html should be run inside a Preview project.');
-      }
-    }
-    return env;
-  }
-
-  function detectTimesFonts() {
-    var found = false;
-    try {
-      found = !!(
-        app.textFonts.getByName('NYTFranklin-Medium') &&
-        app.textFonts.getByName('NYTCheltenham-Medium')
-      );
-    } catch (e) {}
-    return found;
-  }
-
   function getScriptDirectory() {
     return new File($.fileName).parent;
   }
@@ -1523,11 +1479,6 @@ function main() {
   function initDocumentSettings(textBlockSettings) {
     var settings = extend({}, defaultSettings); // copy default settings
 
-    // Apply NYT settings if applicable
-    if (detectTimesFonts()) {
-      importNewYorkTimesSettings(settings);
-    }
-
     // merge external settings into @settings
     extendSettings(settings, readExternalSettings());
 
@@ -1542,62 +1493,6 @@ function main() {
       }
     }
     return settings;
-  }
-
-  function importNewYorkTimesSettings(settings) {
-    var configFilePath = docPath + '../config.yml';
-
-    // Check that we are in an NYT Preview project
-    // If not, give NYT users the option of continuing with non-NYT settings
-    if (!fileExists(configFilePath)) {
-      if (
-        !confirm(
-          'You seem to be running ai2html outside of NYT Preview.\nContinue in non-Preview mode?',
-          true
-        )
-      ) {
-        error(
-          'Make sure your Illustrator file is inside the \u201Cai\u201D folder of a Preview project.'
-        );
-      }
-      return;
-    }
-
-    // TODO: consider applying in non-Preview mode
-    extendSettings(settings, reutersOverrideSettings);
-
-    scriptEnvironment = 'nyt-preview';
-    var yamlConfig = readYamlConfigFile(configFilePath) || {};
-    settings.project_type =
-      yamlConfig.project_type == 'ai2html' ? 'ai2html' : '';
-    if (
-      !folderExists(docPath + '../public/') ||
-      (settings.project_type != 'ai2html' && !folderExists(docPath + '../src/'))
-    ) {
-      error(
-        'Your Preview project may be missing a \u201Cpublic\u201D or a \u201Csrc\u201D folder.'
-      );
-    }
-
-    if (yamlConfig.scoop_slug) {
-      settings.scoop_slug_from_config_yml = yamlConfig.scoop_slug;
-    }
-
-    // Read .git/config file to get preview slug
-    var gitConfig = readGitConfigFile(docPath + '../.git/config') || {};
-    if (gitConfig.url) {
-      settings.preview_slug = gitConfig.url
-        .replace(/^[^:]+:/, '')
-        .replace(/\.git$/, '');
-    }
-
-    settings.image_source_path = '_assets/';
-    if (settings.project_type == 'ai2html') {
-      settings.html_output_path = '/../public/';
-      settings.image_output_path = '_assets/';
-      settings.create_config_file = true;
-      settings.create_promo_image = true;
-    }
   }
 
   function extendSettings(settings, moreSettings) {
@@ -2003,8 +1898,6 @@ function main() {
 
     if (errors.length > 0) {
       alertHed = 'The Script Was Unable to Finish';
-    } else if (scriptEnvironment == 'nyt-preview') {
-      alertHed = 'Actually, that\u2019s not half bad :)'; // &rsquo;
     } else {
       alertHed = 'Nice work!';
     }
@@ -2298,15 +2191,6 @@ function main() {
         ) {
           bpInfo.artboards.push(abInfo.id);
         }
-      }
-      if (bpInfo.artboards.length > 1 && scriptEnvironment == 'nyt-preview') {
-        warn(
-          'The ' +
-            breakpoint.upperLimit +
-            'px breakpoint has ' +
-            bpInfo.artboards.length +
-            ' artboards. You probably want only one artboard per breakpoint.'
-        );
       }
       if (bpInfo.artboards.length === 0 && bpPrev) {
         bpInfo.artboards = bpPrev.artboards.concat();
@@ -4586,13 +4470,6 @@ function main() {
       lines.push('max_width: ' + settings.max_width);
     } else if (
       settings.responsiveness != 'fixed' &&
-      scriptEnvironment == 'nyt-preview'
-    ) {
-      lines.push(
-        'max_width: ' + breakpoints[breakpoints.length - 1].upperLimit
-      );
-    } else if (
-      settings.responsiveness != 'fixed' &&
       scriptEnvironment != 'nyt-preview'
     ) {
       // don't write a max_width setting as there should be no max width in this case
@@ -4643,11 +4520,6 @@ function main() {
 
       document.addEventListener('DOMContentLoaded', update);
       window.addEventListener('resize', onResize);
-
-      // NYT Scoop-specific code
-      if (opts.setup) {
-        opts.setup(container).on('cleanup', cleanup);
-      }
 
       function cleanup() {
         document.removeEventListener('DOMContentLoaded', update);
@@ -4774,20 +4646,6 @@ function main() {
   //   } catch(e) { console.log(e); }
   // }
 
-  // Write an HTML page to a file for NYT Preview
-  function outputLocalPreviewPage(
-    textForFile,
-    localPreviewDestination,
-    settings
-  ) {
-    var localPreviewTemplateText = readTextFile(
-      docPath + settings.local_preview_template
-    );
-    settings.ai2htmlPartial = textForFile; // TODO: don't modify global settings this way
-    var localPreviewHtml = applyTemplate(localPreviewTemplateText, settings);
-    saveTextFile(localPreviewDestination, localPreviewHtml);
-  }
-
   function addCustomContent(content, customBlocks) {
     if (customBlocks.css) {
       //REUTERS, modified to remove comment in css.
@@ -4833,14 +4691,6 @@ function main() {
       '<!-- ai file: ' +
       doc.name +
       ' -->\r';
-
-    if (scriptEnvironment == 'nyt-preview') {
-      commentBlock += '<!-- preview: ' + settings.preview_slug + ' -->\r';
-    }
-    if (settings.scoop_slug_from_config_yml) {
-      commentBlock +=
-        '<!-- scoop: ' + settings.scoop_slug_from_config_yml + ' -->\r';
-    }
 
     // HTML
     html = '<div id="' + containerId + '" class="ai2html">\r';
@@ -4891,14 +4741,6 @@ function main() {
 
     // write file
     saveTextFile(htmlFileDestination, textForFile);
-
-    // process local preview template if appropriate
-    if (settings.local_preview_template !== '') {
-      // TODO: may have missed a condition, need to compare with original version
-      var previewFileDestination =
-        htmlFileDestinationFolder + pageName + '.preview.html';
-      outputLocalPreviewPage(textForFile, previewFileDestination, settings);
-    }
   }
 } // end main() function definition
 main();
