@@ -4649,7 +4649,8 @@ function main() {
   function addCustomContent(content, customBlocks) {
     if (customBlocks.css) {
       //REUTERS, modified to remove comment in css.
-      content.css += customBlocks.css.join('\r\t') + '\r';
+      // Manas added: string replace so don't need to write project_name or filename variable in illustrator file. Can there be an edge case where this is a problem?
+      content.css += customBlocks.css.join('\r\t').replace(/\{\{(project_name|filename)\}\}/g, docName) + '\r';
       /*
     content = "\r\t<style type='text/css' media='screen,print'>\r" +
       "\t\t" + customBlocks.css.join('\r\t\t') +
