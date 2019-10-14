@@ -182,70 +182,6 @@ function main() {
         weight: 'bold',
         style: 'italic',
       },
-    ],
-  };
-
-  // These settings override the default settings in NYT mode
-  var reutersOverrideSettings = {
-    html_output_path: './templates/',
-    image_output_path: './templates/images/',
-    use_lazy_loader: true,
-    include_resizer_script: true,
-    credit: 'REUTERS GRAPHICS',
-
-    settings_block: [
-      'settings_version',
-      'image_format',
-      'write_image_files',
-      'responsiveness',
-      'max_width',
-      'output',
-      'png_number_of_colors',
-      'jpg_quality',
-      'use_lazy_loader',
-      'show_completion_dialog_box',
-      'last_updated_text',
-      'headline',
-      'leadin',
-      'summary',
-      'notes',
-      'sources',
-      'credit',
-      'show_in_compatible_apps',
-      'display_for_promotion_only',
-      'constrain_width_to_text_column',
-      'size',
-    ],
-
-    config_file: [
-      'last_updated_text',
-      'headline',
-      'leadin',
-      'summary',
-      'notes',
-      'sources',
-      'credit',
-      'page_template',
-      'publish_system',
-      'environment',
-      'show_in_compatible_apps',
-      'display_for_promotion_only',
-      'constrain_width_to_text_column',
-      'compatibility',
-      'size',
-      'scoop_publish_fields',
-      'scoop_asset_id',
-      'scoop_username',
-      'scoop_slug',
-      'scoop_external_edit_key',
-    ],
-
-    fonts: [
-      // vshift shifts text vertically, to compensate for vertical misalignment caused
-      // by a difference between vertical placement in Illustrator (of a system font) and
-      // browsers (of the web font equivalent). vshift values are percentage of font size. Positive
-      // values correspond to a downward shift.
-      // Franklin
       {
         aifont: 'Source Sans Pro Light',
         family: 'Source Sans Pro,helvetica,sans-serif',
@@ -302,6 +238,132 @@ function main() {
         style: '',
         vshift: '8%',
       },
+      {
+        aifont: 'SourceSansPro-Light',
+        family: 'Source Sans Pro,helvetica,sans-serif',
+        weight: '100',
+        style: '',
+        vshift: '8%',
+      },
+      {
+        aifont: 'SourceSansVariable-Light',
+        family: 'Source Sans Pro,helvetica,sans-serif',
+        weight: '100',
+        style: '',
+        vshift: '8%',
+      },
+      {
+        aifont: 'SourceSansPro',
+        family: 'Source Sans Pro,helvetica,sans-serif',
+        weight: '400',
+        style: '',
+        vshift: '8%',
+      },
+      {
+        aifont: 'SourceSansPro-Regular',
+        family: 'Source Sans Pro,helvetica,sans-serif',
+        weight: '400',
+        style: '',
+        vshift: '8%',
+      },
+      {
+        aifont: 'SourceSansPro-Italic',
+        family: 'Source Sans Pro,helvetica,sans-serif',
+        weight: '400',
+        style: 'Italic',
+        vshift: '8%',
+      },
+      {
+        aifont: 'SourceSansVariable-Regular',
+        family: 'Source Sans Pro,helvetica,sans-serif',
+        weight: '400',
+        style: '',
+        vshift: '8%',
+      },
+      {
+        aifont: 'SourceSansPro-Semibold',
+        family: 'Source Sans Pro,helvetica,sans-serif',
+        weight: '600',
+        style: '',
+        vshift: '8%',
+      },
+      {
+        aifont: 'SourceSansVariable-Semibold',
+        family: 'Source Sans Pro,helvetica,sans-serif',
+        weight: '600',
+        style: '',
+        vshift: '8%',
+      },
+      {
+        aifont: 'SourceSansPro-Bold',
+        family: 'Source Sans Pro,helvetica,sans-serif',
+        weight: '700',
+        style: '',
+        vshift: '8%',
+      },
+      {
+        aifont: 'SourceSansVariable-Bold',
+        family: 'Source Sans Pro,helvetica,sans-serif',
+        weight: '700',
+        style: '',
+        vshift: '8%',
+      },
+    ],
+  };
+
+  // These settings override the default settings in NYT mode
+  var reutersOverrideSettings = {
+    html_output_path: './templates/',
+    image_output_path: './templates/images/',
+    use_lazy_loader: true,
+    include_resizer_script: true,
+    credit: 'REUTERS GRAPHICS',
+
+    settings_block: [
+      'settings_version',
+      'image_format',
+      'write_image_files',
+      'responsiveness',
+      'max_width',
+      'output',
+      'png_number_of_colors',
+      'jpg_quality',
+      'use_lazy_loader',
+      'show_completion_dialog_box',
+      'last_updated_text',
+      'headline',
+      'leadin',
+      'summary',
+      'notes',
+      'sources',
+      'credit',
+      'show_in_compatible_apps',
+      'display_for_promotion_only',
+      'constrain_width_to_text_column',
+      'size',
+    ],
+
+    config_file: [
+      'last_updated_text',
+      'headline',
+      'leadin',
+      'summary',
+      'notes',
+      'sources',
+      'credit',
+      'page_template',
+      'publish_system',
+      'environment',
+      'show_in_compatible_apps',
+      'display_for_promotion_only',
+      'constrain_width_to_text_column',
+      'compatibility',
+      'size',
+      'scoop_publish_fields',
+      'scoop_asset_id',
+      'scoop_username',
+      'scoop_slug',
+      'scoop_external_edit_key',
     ],
   };
 
@@ -2807,14 +2869,16 @@ function main() {
 
   // Lookup an AI font name in the font table
   function findFontInfo(aifont) {
+    
     var info = null;
     for (var k = 0; k < fonts.length; k++) {
-      if (aifont == fonts[k].aifont) {
+      if (aifont === fonts[k].aifont) {
         info = fonts[k];
         break;
       }
     }
     if (!info) {
+      
       // font not found... parse the AI font name to give it a weight and style
       info = {};
       if (aifont.indexOf('Italic') > -1) {
