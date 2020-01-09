@@ -3982,7 +3982,6 @@ function main() {
   function generateImageHtml(imgFile, imgId, imgClass, imgStyle, ab, settings) {
     var abPos = convertAiBounds(ab.artboardRect),
       imgDir = settings.image_source_path,
-      imgAlt = encodeHtmlEntities(settings.image_alt_text || ''),
       html,
       src;
     if (imgDir === null) {
@@ -3992,25 +3991,10 @@ function main() {
     if (settings.cache_bust_token) {
       src += '?v=' + settings.cache_bust_token;
     }
-    html =
-      '\t\t<img id="' +
-      imgId +
-      '" class="' +
-      imgClass +
-      '" alt="' +
-      imgAlt +
-      '"';
-    if (imgStyle) {
-      html += ' style="' + imgStyle + '"';
-    }
-    if (isTrue(settings.use_lazy_loader)) {
-      html += ' data-src="' + src + '"';
-      // placeholder while image loads
-      // (<img> element requires a src attribute, according to spec.)
-      src =
-        'data:image/gif;base64,R0lGODlhCgAKAIAAAB8fHwAAACH5BAEAAAAALAAAAAAKAAoAAAIIhI+py+0PYysAOw==';
-    }
-    html += ' src="' + src + '"/>\r';
+
+    html = '\t\t<div id="' + imgId + '" class="' + imgClass + '" ';
+    html += 'style="width:100%;padding-bottom:' + (roundTo(abPos.height / abPos.width, 4) * 100) + '%; background-image:url(' + src + '); ' + imgStyle +'"></div>\r';
+
     return html;
   }
 
@@ -4512,6 +4496,7 @@ function main() {
 
     css += t2 + '.' + nameSpace + 'aiImg {\r';
     css += t3 + 'display:block;\r';
+    css += t3 + "background-size: cover;\r";
     css += t3 + 'width:100% !important;\r';
     css += t2 + '}\r';
 
