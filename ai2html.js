@@ -3993,7 +3993,11 @@ function main() {
     }
 
     html = '\t\t<div id="' + imgId + '" class="' + imgClass + '" ';
-    html += 'style="width:100%;padding-bottom:' + (roundTo(abPos.height / abPos.width, 4) * 100) + '%; background-image:url(' + src + '); ' + imgStyle +'"></div>\r';
+    html += 'style="width:100%;padding-bottom:' + (roundTo(abPos.height / abPos.width, 6) * 100) + '%; background-image:url(' + src + ');';
+    if(imgStyle){
+      html += ' ' + imgStyle;
+    }  
+    html += '"></div>\r';
 
     return html;
   }
