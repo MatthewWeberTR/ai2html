@@ -1975,15 +1975,11 @@ function main() {
       //REUTERS modified to give you script to copy into your JS file.
       alertText +=
         rule +
-        '\rCOPY TO JS\r\rimport ' +
+        '\rCOPY TO ARTICLE.EJS\r\r' +
+
+        "<%- include('templates/" +
         docName +
-        " from '../templates/" +
-        docName +
-        ".html'\r$('#" +
-        docName +
-        "').html(" +
-        docName +
-        '())\r\r';
+        ".html'); %>\r\r";
       alertText += rule + 'ai2html-nyt5 v' + scriptVersion;
       alert(alertHed + alertText);
       makePromo = false;
