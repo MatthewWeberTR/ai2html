@@ -2251,7 +2251,8 @@ function main() {
     }
     return tagName ? straightenCurlyQuotesInsideAngleBrackets(str) : str;
   }
-  
+
+  //REUTERS modified to include gettext tags.
   function generateParagraphHtml(pData, baseStyle, pStyles, cStyles) {
     var html, diff, range, rangeHtml;
     if (pData.text.length === 0) { // empty pg
@@ -2262,21 +2263,27 @@ function main() {
     diff = objectDiff(pData.cssStyle, baseStyle);
     // Give the pg a class, if it has a different style than the base pg class
     if (diff) {
-      html = '<p class="' + getTextStyleClass(diff, pStyles, 'pstyle') + '">';
+      html =
+      '<p class="' +
+      getTextStyleClass(diff, pStyles, 'pstyle') +
+      '"><%= gt.gettext("';
     } else {
-      html = '<p>';
+      html = '<p><%= gt.gettext("';
     }
     for (var j=0; j<pData.ranges.length; j++) {
       range = pData.ranges[j];
       rangeHtml = cleanHtmlText(cleanHtmlTags(range.text));
       diff = objectDiff(range.cssStyle, pData.cssStyle);
       if (diff) {
-        rangeHtml = '<span class="' +
-        getTextStyleClass(diff, cStyles, 'cstyle') + '">' + rangeHtml + '</span>';
+        rangeHtml = '")%><span class="' +
+          getTextStyleClass(diff, cStyles, 'cstyle') +
+          '"><%= gt.gettext("' +
+          rangeHtml +
+          '")%></span><%= gt.gettext("';
       }
       html += rangeHtml;
     }
-    html += '</p>';
+    html += '")%></p>';
     return html;
   }
   
@@ -3539,17 +3546,22 @@ function main() {
     if (settings.cache_bust_token) {
       src += '?v=' + settings.cache_bust_token;
     }
-    html = '\t\t<img id="' + imgId + '" class="' + imgClass + '" alt="' + imgAlt + '"';
+    html = '\t\t<div id="' + imgId + '" class="' + imgClass + '" alt="' + imgAlt + '"';
+    html += ' style="'
     if (imgStyle) {
-      html += ' style="' + imgStyle + '"';
+      html += imgStyle + ";";
     }
-    if (isTrue(settings.use_lazy_loader)) {
-      html += ' data-src="' + src + '"';
-      // placeholder while image loads
-      // (<img> element requires a src attribute, according to spec.)
-      src = 'data:image/gif;base64,R0lGODlhCgAKAIAAAB8fHwAAACH5BAEAAAAALAAAAAAKAAoAAAIIhI+py+0PYysAOw==';
-    }
-    html += ' src="' + src + '"/>\r';
+    // if (isTrue(settings.use_lazy_loader)) {
+    //   html += ' data-src="' + src + '"';
+    //   // placeholder while image loads
+    //   // (<img> element requires a src attribute, according to spec.)
+    //   src = 'data:image/gif;base64,R0lGODlhCgAKAIAAAB8fHwAAACH5BAEAAAAALAAAAAAKAAoAAAIIhI+py+0PYysAOw==';
+    // }
+    // html += ' src="' + src + '"/>\r';
+
+    // testStr += html + "\n" + src;
+
+    html += 'background-image: url(' + src + ');"></div>'
     return html;
   }
   
@@ -4005,6 +4017,8 @@ function main() {
     css += t3 + 'top:0;';
     css += t3 + 'display:block;';
     css += t3 + 'width:100% !important;';
+    css += t3 + 'height: 100%;'
+    css += t3 + 'background-size: contain;'
     css += blockEnd;
   
     css += blockStart + '.' + getSymbolClass() + ' {';
