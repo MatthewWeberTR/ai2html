@@ -4276,11 +4276,11 @@ function main() {
   }
   
   function addCustomContent(content, customBlocks) {
-    var finalCss = generateMediaQueries();
+    var mQ = generateMediaQueries();
     if (customBlocks.css) {
-      content.css += '\r\t/* Custom CSS */\r' + (customBlocks.css.join('\r\t') + finalCss).replace(/\{\{(project_name|filename)\}\}/g, docName) + '\r';
+      content.css += '\r\t/* Custom CSS */\r' + (customBlocks.css.join('\r\t\n') + "\n" + mQ).replace(/\{\{(project_name|filename)\}\}/g, docName) + '\r';
     } else {
-      content.css += '\r\t/* Custom CSS */\r' + (finalCss).replace(/\{\{(project_name|filename)\}\}/g, docName) + '\r';
+      content.css += '\r\t/* Custom CSS */\r' + (mQ).replace(/\{\{(project_name|filename)\}\}/g, docName) + '\r';
     }
 
     
