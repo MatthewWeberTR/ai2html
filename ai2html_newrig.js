@@ -4199,17 +4199,98 @@ function main() {
     // hardcoded breakpoints.
     var breakPoints = [575, 765, 992, 1300];
 
+    var widthToSize = {
+      320: "xs",
+      510: "sm",
+      690: "md",
+      920: "lg"
+    }
+
+    var existingSizes = {
+      "xl": false,
+      "lg": false,
+      "md": false,
+      "sm": false,
+      "xs": false
+    };
+
+    // 
+
     // get sizes and names of artboards
     // i don't understand how but: illustrator returns units in points. i can get artboard dimensions by (x2-x1, y2-y1). BUT the values that gives me are the same absolute numbers as in pixels while working IN illustrator without any conversions.
     // I feel like there can be edge cases here which will need conversions from points to pixels but not sure what?
-    var sizes = map(doc.artboards, function(artboard) {
+    forEach(doc.artboards, function(artboard) {
       var rect = artboard.artboardRect;
       var artboardSize = [rect[2] - rect[0], rect[3] - rect[1]];
-      return {
+      // sometimes weird decimals happen in javascript
+      artboardSize[0] = Math.ceil(artboardSize[0])
+      
+      // testStr += artboardSize[0] + ", "
+      var artboardObj = {
         "name": artboard.name,
         "width": artboardSize[0],
         "height": artboardSize[1]
       };
+      // xl artboard
+      if(artboardSize[0] > 920) {
+        existingSizes["xl"] =  artboardObj;
+      } else {
+        // will crash if someone changed the sizes of the 4 basic artboards.
+        // they had it coming
+        existingSizes[widthToSize[artboardSize[0]]] = artboardObj;
+      }
+    });
+
+    if(!existingSizes["xs"]) {
+      warn("NO XS ARTBOARD. Your 'art' is probably trash on the phone. But go ahead, make 60% of our users cringe.")
+    }
+
+    // if there are less than 5 artboards, means something was deleted
+    // if "00" signifies removed artboard(s)
+    // xs 00 md lg 00 -> xs xs md lg lg
+    // 00 sm md lg xl -> sm sm md lg xl
+    // 00 00 md lg 00 -> md md md lg lg
+    // xs 00 00 lg xl -> xs xs xs lg xl
+
+    // traverse the existingSizes in reverse order of sizes (note that the keys for that are already reversed)
+    // keep storing "missing artboards" by comparing width to the widthToSize variable above.
+    // upon hitting a non missing artboard, fill out all the gaps by this artboard
+    // if you reach the beginning of the array before hitting an artboards, and you have gaps left in your stack, fill them out with the last present artboard
+    var lastExistingArtboard = null;
+    var missingStack = [];
+    for (size in existingSizes) {
+      if (!existingSizes[size]) {
+        missingStack.push(size)
+      }
+
+      
+      // if not missing, clear the stack
+      if(existingSizes[size]) {
+        // testStr += missingStack + "\n"
+        lastExistingArtboard = size;
+        forEach(missingStack, function(missing) {
+          existingSizes[missing] = existingSizes[lastExistingArtboard];
+        })
+      }
+    }
+    
+    // testStr += missingStack + "\n"
+    // if stack still has elements, fill them out
+    if(missingStack.length > 0) {
+      forEach(missingStack, function(missing) {
+        existingSizes[missing] = existingSizes[lastExistingArtboard];
+      })
+    }
+    
+    var sizes = map(["xl", "lg", "md", "sm", "xs"], function(size) {return existingSizes[size]});
+
+    testStr += "Final artboards: " + map(sizes, function(size) {return size.name});
+
+
+
+    // sort in increasing order of width
+    sizes.sort(function(a, b) {
+      return a.width - b.width;
     });
 
 
@@ -4252,12 +4333,7 @@ function main() {
       }
     }
 
-    // sort in increasing order of width
-    sizes.sort(function(a, b) {
-      return a.width - b.width;
-    });
 
-    // 
     forEach(sizes, function(size, i) {
       // create a copy of the array with all the artboards
       var temp = sizes.slice();
@@ -4268,7 +4344,7 @@ function main() {
       // hide the other boards.
       var toHide = hide(selectBoards(temp));
 
-      mQ.push(queryCss(breakPoints[i], toShow + "\n" + toHide));
+      mQ.push(queryCss(breakPoints[i], toHide + "\n" + toShow));
     });
 
     // reverse the array because it has the smallest to largest media queries but should be the other way. And join.
