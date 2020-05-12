@@ -2284,6 +2284,8 @@ function main() {
       html += rangeHtml;
     }
     html += '")%></p>';
+    // remove empty strings since the rig seems to replace them with some weird content type text
+    html = html.replace(/\<\%\= gt\.gettext\(\"\"\)\%\>/gi, "");
     return html;
   }
   
