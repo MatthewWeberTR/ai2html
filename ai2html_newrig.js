@@ -3940,7 +3940,7 @@ function main() {
       // Set height of dynamic artboards using vertical padding as a %, to preserve aspect ratio.
       inlineSpacerStyle = 'padding: 0 0 ' + formatCssPct(abBox.height, abBox.width) + ' 0;';
       if (widthRange[0] > 0) {
-        inlineStyle += 'min-width: ' + widthRange[0] + 'px;';
+        // inlineStyle += 'min-width: ' + widthRange[0] + 'px;';
       }
       if (widthRange[1] < Infinity) {
         inlineStyle += 'max-width: ' + widthRange[1] + 'px;';
@@ -4020,7 +4020,8 @@ function main() {
     css += t3 + 'display:block;';
     css += t3 + 'width:100% !important;';
     css += t3 + 'height: 100%;'
-    css += t3 + 'background-size: contain;'
+    css += t3 + 'background-size: cover;'
+    css += t3 + 'background-repeat: no-repeat;'
     css += blockEnd;
   
     css += blockStart + '.' + getSymbolClass() + ' {';
@@ -4273,10 +4274,11 @@ function main() {
         forEach(missingStack, function(missing) {
           existingSizes[missing] = existingSizes[lastExistingArtboard];
         })
+        missingStack = []
       }
     }
     
-    // testStr += missingStack + "\n"
+    // testStr += "\n"
     // if stack still has elements, fill them out
     if(missingStack.length > 0) {
       forEach(missingStack, function(missing) {
