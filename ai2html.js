@@ -771,7 +771,9 @@ function main() {
   
   function cleanHtmlText(text) {
     // Characters "<>& are not replaced
-    return replaceChars(text, extraCharacterReplacements);
+    // return replaceChars(text, extraCharacterReplacements);
+    // OVERRIDING THIS HERE. we need to replace those two angular brackets becuase we have out text inside gettexts.
+    return replaceChars(text, basicCharacterReplacements.concat(extraCharacterReplacements));
   }
   
   function replaceChars(str, replacements) {
@@ -4356,7 +4358,8 @@ function main() {
   }
   
   function addCustomContent(content, customBlocks) {
-    var mQ = generateMediaQueries();
+    // var mQ = generateMediaQueries();
+    var mQ = "";
     if (customBlocks.css) {
       content.css += '\r\t/* Custom CSS */\r' + (customBlocks.css.join('\r\t\n') + "\n" + mQ).replace(/\{\{(project_name|filename)\}\}/g, docName) + '\r';
     } else {
