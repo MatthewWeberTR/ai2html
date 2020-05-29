@@ -1571,6 +1571,13 @@ function main() {
       // confirm(<msg>, false) makes "Yes" the default (at Baden's request).
       makePromo = confirm(alertHed  + alertText, false);
     } else {
+      alertText +=
+        rule +
+        '\rCOPY TO ARTICLE.EJS\r\r' +
+
+        "<%- include('ai2html/" +
+        docName +
+        ".ejs'); %>\r\r";
       alertText += rule + "ai2html-nyt5 v" + scriptVersion;
       alertText += "\n\n" + testStr + "\n\n"
       alert(alertHed + alertText);
