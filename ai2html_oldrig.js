@@ -1975,11 +1975,15 @@ function main() {
       //REUTERS modified to give you script to copy into your JS file.
       alertText +=
         rule +
-        '\rCOPY TO ARTICLE.EJS\r\r' +
-
-        "<%- include('templates/" +
+        '\rCOPY TO JS\r\rimport ' +
         docName +
-        ".html'); %>\r\r";
+        " from '../templates/" +
+        docName +
+        ".html'\r$('#" +
+        docName +
+        "').html(" +
+        docName +
+        '())\r\r';
       alertText += rule + 'ai2html-nyt5 v' + scriptVersion;
       alert(alertHed + alertText);
       makePromo = false;
@@ -2682,9 +2686,9 @@ function main() {
       html =
         '<p class="' +
         getTextStyleClass(diff, pStyles, 'pstyle') +
-        '"><%=gt.gettext("';
+        '"><%=gettext("';
     } else {
-      html = '<p><%=gt.gettext("';
+      html = '<p><%=gettext("';
     }
     for (var j = 0; j < pData.ranges.length; j++) {
       range = pData.ranges[j];
@@ -2694,9 +2698,9 @@ function main() {
         rangeHtml =
           '")%><span class="' +
           getTextStyleClass(diff, cStyles, 'cstyle') +
-          '"><%=gt.gettext("' +
+          '"><%=gettext("' +
           rangeHtml +
-          '")%></span><%=gt.gettext("';
+          '")%></span><%=gettext("';
       }
       html += rangeHtml;
     }
