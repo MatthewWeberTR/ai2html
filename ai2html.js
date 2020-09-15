@@ -185,7 +185,20 @@ function main() {
         weight: "bold",
         style: "italic",
       },
+      {
+        aifont: "Source Sans Pro Light",
+        family: "arial,helvetica,sans-serif",
+        weight: "light",
+        style: "",
+      },
+      {
+        aifont: "Source Sans Pro Semibold",
+        family: "arial,helvetica,sans-serif",
+        weight: "semibold",
+        style: "",
+      },
     ],
+
 
     // Width ranges for responsive breakpoints (obsolete, will be removed)
     breakpoints: [
