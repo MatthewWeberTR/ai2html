@@ -199,7 +199,6 @@ function main() {
       },
     ],
 
-
     // Width ranges for responsive breakpoints (obsolete, will be removed)
     breakpoints: [
       { name: "xsmall", lowerLimit: 0, upperLimit: 180 },
@@ -4637,7 +4636,7 @@ function main() {
 
     // testStr += html + "\n" + src;
 
-    html += "background-image: url(" + src + ');"></div>';
+    html += "background-image: url(" + src + '); display:none;"></div>';
     return html;
   }
 
@@ -4942,11 +4941,12 @@ function main() {
     svg = reapplyEffectsInSVG(svg);
     // prevent SVG strokes from scaling
     // (add element id to selector to prevent inline SVG from affecting other SVG on the page)
-    selector = map("rect,circle,path,line,polyline".split(","), function (
-      name
-    ) {
-      return "#" + id + " " + name;
-    }).join(", ");
+    selector = map(
+      "rect,circle,path,line,polyline".split(","),
+      function (name) {
+        return "#" + id + " " + name;
+      }
+    ).join(", ");
     svg = injectCSSinSVG(
       svg,
       selector + " { vector-effect: non-scaling-stroke; }"
@@ -5233,6 +5233,9 @@ function main() {
               );
             }
             el.style.display = "block";
+            // only make the current one visible to save load.
+            var aiImg = el.getElementsByClassName("g-aiImg")[0];
+            aiImg.style.display = "block";
           } else {
             el.style.display = "none";
           }
@@ -5468,12 +5471,9 @@ function main() {
     }
 
     function show(board) {
-      return (
-        board + " {\
-        display: block;\
+      return board + " {\
         margin: 0 auto;\
-      }"
-      );
+      }";
     }
 
     // the actual media query css
