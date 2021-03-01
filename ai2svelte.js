@@ -1023,8 +1023,13 @@ function main() {
         docName = getDocumentName(docSettings.project_name);
         // fonts = docSettings.fonts; // set global variable
 
+        //detect language edition and adjust pathing
+        //feilding
+
         if (!textBlockData.settings) {
             createSettingsBlock(docSettings);
+        } else {
+
         }
 
         // render the document
@@ -2435,6 +2440,8 @@ function main() {
         } else {
             alertText +=
                 rule +
+                "here\r" +
+                getScriptDirectory() + "\r" +
                 "\rCOPY TO ARTICLE.EJS\r\r" +
                 "<%- include('ai2html/" +
                 docName +
