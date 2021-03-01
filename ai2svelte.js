@@ -99,6 +99,7 @@ function main() {
         notes: "",
         sources: "",
         credit: "",
+        container_fluid: "",
         // removed most NYT-specific settings from default settings, including:
         //   page_template, publish_system, environment, show_in_compatible_apps,
         //   display_for_promotion_only, constrain_width_to_text_column,
@@ -122,6 +123,7 @@ function main() {
             "notes",
             "sources",
             "credit",
+
         ],
 
         // list of settings to include in the config.yml file
@@ -1491,7 +1493,7 @@ function main() {
         );
         var ejsPattern = new RegExp("<%=? *" + keyExp + " *%>", "g");
         var replace = function (match, name) {
-            var lcname = name.toLowerCase();
+            var lcname = name //name.toLowerCase();
             if (name in replacements) return replacements[name];
             if (lcname in replacements) return replacements[lcname];
             return match;
@@ -2638,7 +2640,7 @@ function main() {
         if (!minAB || !maxAB) return [0, 0];
         min = settings.min_width || minAB.effectiveWidth;
         if (maxAB.responsiveness == "dynamic") {
-            max = settings.max_width || Math.max(maxAB.effectiveWidth, 1600);
+            max = settings.max_width || Math.max(maxAB.effectiveWidth);
         } else {
             max = maxAB.effectiveWidth;
         }
@@ -3538,11 +3540,11 @@ function main() {
         }
         // if (('opacity' in aiStyle) && aiStyle.opacity < 100) {
         if ("opacity" in aiStyle) {
-            cssStyle.filter = "alpha(opacity=" + Math.round(aiStyle.opacity) + ")";
-            cssStyle["-ms-filter"] =
-                "progid:DXImageTransform.Microsoft.Alpha(Opacity=" +
-                Math.round(aiStyle.opacity) +
-                ")";
+            //cssStyle.filter = "alpha(opacity=" + Math.round(aiStyle.opacity) + ")";
+            //cssStyle["-ms-filter"] =
+            //   "progid:DXImageTransform.Microsoft.Alpha(Opacity=" +
+            //   Math.round(aiStyle.opacity) +
+            //    ")";
             cssStyle.opacity = roundTo(aiStyle.opacity / 100, cssPrecision);
         }
         if (aiStyle.blendMode && (tmp = getBlendModeCss(aiStyle.blendMode))) {
@@ -5071,7 +5073,7 @@ function main() {
             }
         }
 
-        if (isTrue(settings.include_resizer_widths)) {
+        if (isTrue(settings.include_resizer_script)) {
 
             if (visibleRange[1] < Infinity) {
                 html += '{#if width >= ' + visibleRange[0] + ' && width <' + visibleRange[1] + '}';
@@ -5119,6 +5121,11 @@ function main() {
         var t3 = "\r\t\t";
         var blockStart = t2 + "#" + containerId + " ";
         var blockEnd = "\r" + t2 + "}\r";
+
+        var maxContainerWidth = getWidthRangeForConfig(settings)[1];
+        css += '.container-fixed#' + containerId + "{";
+        css += t3 + "max-width:" + maxContainerWidth + "px;";
+        css += blockEnd;
 
         if (settings.max_width) {
             css += blockStart + "{";
@@ -5196,155 +5203,23 @@ function main() {
         return lines.join("\n");
     }
 
-    function getResizerScript(containerId) {
+    function getResizerScript(containerId, settings) {
         // The resizer function is embedded in the HTML page -- external variables must
         // be passed in.
         //
-        // TODO: Consider making artboard images position:absolute and setting
-        //   height as a padding % (calculated from the aspect ratio of the graphic).
-        //   This will correctly set the initial height of the graphic before
-        //   an image is loaded.
-        //
-        var resizer = function (containerId, opts) {
-            if (!("querySelector" in document)) return;
-            var container = document.getElementById(containerId);
-            var nameSpace = opts.namespace || "";
-            var onResize = throttle(update, 200);
-            var waiting = !!window.IntersectionObserver;
-            var observer;
-            update();
+        var svelteJS = '<script>\r\t';
+        svelteJS += '\tlet width = 100;\r';
 
-            document.addEventListener("DOMContentLoaded", update);
-            window.addEventListener("resize", onResize);
+        if (settings.container_fluid == '') {
+            svelteJS += '\texport let containerFluid = false;\r';
+        } else {
+            svelteJS += '\texport let containerFluid = true;\r';
+        }
 
-            // NYT Scoop-specific code
-            if (opts.setup) {
-                opts.setup(container).on("cleanup", cleanup);
-            }
 
-            function cleanup() {
-                document.removeEventListener("DOMContentLoaded", update);
-                window.removeEventListener("resize", onResize);
-                if (observer) observer.disconnect();
-            }
+        svelteJS += "\r</script>\r";
 
-            function update() {
-                var artboards = selectChildren(
-                    "." + nameSpace + "artboard[data-min-width]",
-                    container
-                ),
-                    width = Math.round(container.getBoundingClientRect().width);
-
-                // Set artboard visibility based on container width
-                artboards.forEach(function (el) {
-                    var minwidth = el.getAttribute("data-min-width"),
-                        maxwidth = el.getAttribute("data-max-width");
-                    if (+minwidth <= width && (+maxwidth >= width || maxwidth === null)) {
-                        if (!waiting) {
-                            selectChildren("." + nameSpace + "aiImg", el).forEach(
-                                updateImgSrc
-                            );
-                        }
-                        el.style.display = "block";
-                        // only make the current one visible to save load.
-                        var aiImg = el.getElementsByClassName("g-aiImg")[0];
-                        aiImg.style.display = "block";
-                    } else {
-                        el.style.display = "none";
-                    }
-                });
-
-                // Initialize lazy loading on first call
-                if (waiting && !observer) {
-                    if (elementInView(container)) {
-                        waiting = false;
-                        update();
-                    } else {
-                        observer = new IntersectionObserver(onIntersectionChange, {});
-                        observer.observe(container);
-                    }
-                }
-            }
-
-            function elementInView(el) {
-                var bounds = el.getBoundingClientRect();
-                return bounds.top < window.innerHeight && bounds.bottom > 0;
-            }
-
-            // Replace blank placeholder image with actual image
-            function updateImgSrc(img) {
-                var src = img.getAttribute("data-src");
-                if (src && img.getAttribute("src") != src) {
-                    img.setAttribute("src", src);
-                }
-            }
-
-            function onIntersectionChange(entries) {
-                // There may be multiple entries relating to the same container
-                // (captured at different times)
-                var isIntersecting = entries.reduce(function (memo, entry) {
-                    return memo || entry.isIntersecting;
-                }, false);
-                if (isIntersecting) {
-                    waiting = false;
-                    // update: don't remove -- we need the observer to trigger an update
-                    // when a hidden map becomes visible after user interaction
-                    // (e.g. when an accordion menu or tab opens)
-                    // observer.disconnect();
-                    // observer = null;
-                    update();
-                }
-            }
-
-            function selectChildren(selector, parent) {
-                return parent
-                    ? Array.prototype.slice.call(parent.querySelectorAll(selector))
-                    : [];
-            }
-
-            // based on underscore.js
-            function throttle(func, wait) {
-                var timeout = null,
-                    previous = 0;
-                function run() {
-                    previous = Date.now();
-                    timeout = null;
-                    func();
-                }
-                return function () {
-                    var remaining = wait - (Date.now() - previous);
-                    if (remaining <= 0 || remaining > wait) {
-                        clearTimeout(timeout);
-                        run();
-                    } else if (!timeout) {
-                        timeout = setTimeout(run, remaining);
-                    }
-                };
-            }
-        };
-
-        var optStr =
-            '{namespace: "' +
-            nameSpace +
-            '", setup: window.setupInteractive || window.getComponent}';
-
-        // convert resizer function to JS source code
-        var resizerJs =
-            "(" +
-            trim(resizer.toString().replace(/ {2}/g, "\t")) + // indent with tabs
-            ')("' +
-            containerId +
-            '", ' +
-            optStr +
-            ");";
-
-        var svelteResizer = function () {
-            var width = 350;
-        };
-
-        var svelteResizerJS = svelteResizer.toString().replace("function () {", "").replace(/}([^}]*)$/, '');
-
-        return '<script>\r\t' + svelteResizerJS + "\r</script>\r";
+        return svelteJS
     }
 
     // Write an HTML page to a file for NYT Preview
@@ -5532,7 +5407,7 @@ function main() {
         progressBar.setTitle("Writing HTML output...");
 
         if (isTrue(settings.include_resizer_script)) {
-            responsiveJs = getResizerScript(containerId);
+            responsiveJs = getResizerScript(containerId, settings);
         }
 
         // comments
@@ -5555,7 +5430,7 @@ function main() {
         }
 
         // HTML
-        html = '<div id="' + containerId + '" class="ai2html" bind:clientWidth={width}>\r';
+        html = '<div id="' + containerId + '" class="{(containerFluid) ? "container-fluid" : "container-fixed"}" bind:clientWidth={width}>\r';
         if (linkSrc) {
             // optional link around content
             html +=
@@ -5569,7 +5444,7 @@ function main() {
 
         // CSS
         css =
-            '<style media="screen,print">\r' +
+            '<style lang="scss">\r' +
             generatePageCss(containerId, settings) +
             content.css +
             "\r</style>\r";
