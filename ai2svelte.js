@@ -4622,12 +4622,12 @@ function main() {
 
     // Create an <img> tag for the artboard image
     function generateImageHtml(imgFile, imgId, imgClass, imgStyle, ab, settings) {
-        var imgDir = settings.image_source_path,
+        var imgDir = '{ assets }',
             imgAlt = encodeHtmlEntities(settings.image_alt_text || ""),
             html,
             src;
         if (imgDir === null) {
-            imgDir = settings.image_output_path;
+            //imgDir = settings.image_output_path;
         }
         src = pathJoin(imgDir, imgFile);
         if (settings.cache_bust_token) {
@@ -5215,6 +5215,7 @@ function main() {
         // be passed in.
         //
         var svelteJS = '<script>\r\t';
+        svelteJS += "import { assets } from '$app/paths';\r"
         svelteJS += '\tlet width = 100;\r';
 
         if (settings.container_fluid == '') {
