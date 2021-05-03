@@ -4622,7 +4622,7 @@ function main() {
 
     // Create an <img> tag for the artboard image
     function generateImageHtml(imgFile, imgId, imgClass, imgStyle, ab, settings) {
-        var imgDir = '{ assets }',
+        var imgDir = '{ assets }/images',
             imgAlt = encodeHtmlEntities(settings.image_alt_text || ""),
             html,
             src;
@@ -5477,7 +5477,7 @@ function main() {
         htmlFileDestinationFolder = docPath + settings.html_output_path;
         checkForOutputFolder(htmlFileDestinationFolder, "html_output_path");
         htmlFileDestination =
-            htmlFileDestinationFolder + pageName + settings.html_output_extension;
+            htmlFileDestinationFolder + pageName + '.svelte';
 
         if (settings.output == "one-file" && settings.project_type == "ai2html") {
             htmlFileDestination =
