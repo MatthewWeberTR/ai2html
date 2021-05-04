@@ -2438,14 +2438,8 @@ function main() {
             // confirm(<msg>, false) makes "Yes" the default (at Baden's request).
             makePromo = confirm(alertHed + alertText, false);
         } else {
-            alertText +=
-                rule +
-                "here\r" +
-                getScriptDirectory() + "\r" +
-                "\rCOPY TO ARTICLE.EJS\r\r" +
-                "<%- include('ai2html/" +
-                docName +
-                ".ejs'); %>\r\r";
+
+
             alertText += rule + "ai2html-nyt5 v" + scriptVersion;
             alertText += "\n\n" + testStr + "\n\n";
             alert(alertHed + alertText);
@@ -4622,7 +4616,7 @@ function main() {
 
     // Create an <img> tag for the artboard image
     function generateImageHtml(imgFile, imgId, imgClass, imgStyle, ab, settings) {
-        var imgDir = '{ assets }/images',
+        var imgDir = '{ assets }/' + settings.image_source_path,
             imgAlt = encodeHtmlEntities(settings.image_alt_text || ""),
             html,
             src;
@@ -5070,24 +5064,24 @@ function main() {
             // Set height of dynamic artboards using vertical padding as a %, to preserve aspect ratio.
             inlineSpacerStyle =
                 "padding: 0 0 " + formatCssPct(abBox.height, abBox.width) + " 0;";
-            if (widthRange[0] > 0) {
-                // inlineStyle += 'min-width: ' + widthRange[0] + 'px;';
-            }
-            if (widthRange[1] < Infinity) {
-                inlineStyle += "max-width: " + widthRange[1] + "px;";
-                inlineStyle +=
-                    "max-height: " + Math.round(widthRange[1] / aspectRatio) + "px";
-            }
+            // if (widthRange[0] > 0) {
+            // inlineStyle += 'min-width: ' + widthRange[0] + 'px;';
+            // }
+            // if (widthRange[1] < Infinity) {
+            //     inlineStyle += "max-width: " + widthRange[1] + "px;";
+            //     inlineStyle +=
+            //         "max-height: " + Math.round(widthRange[1] / aspectRatio) + "px";
+            // }
         }
 
-        if (isTrue(settings.include_resizer_script)) {
+        //if (isTrue(settings.include_resizer_script)) {
 
-            if (visibleRange[1] < Infinity) {
-                html += '{#if width >= ' + visibleRange[0] + ' && width <' + visibleRange[1] + '}';
-            } else {
-                html += '{#if width >= ' + visibleRange[0] + ' }';
-            }
+        if (visibleRange[1] < Infinity) {
+            html += '{#if autoResize || (!autoResize && width >= ' + visibleRange[0] + ' && width <' + visibleRange[1] + ')}';
+        } else {
+            html += '{#if autoResize || (!autoResize && width >= ' + visibleRange[0] + ') }';
         }
+        //}
 
         html +=
             '\t<div id="' +
@@ -5105,6 +5099,8 @@ function main() {
     }
 
     function generateArtboardCss(ab, textClasses, settings) {
+        var visibleRange = getArtboardVisibilityRange(ab, settings);
+
         var t3 = "\t",
             t4 = t3 + "\t",
             abId = "#" + nameSpace + getArtboardFullName(ab, settings),
@@ -5112,6 +5108,21 @@ function main() {
         css += t3 + abId + " {\r";
         css += t4 + "position:relative;\r";
         css += t4 + "overflow:hidden;\r";
+
+        css += t4 + ".auto-resize & {\r";
+        css += t4 + t4 + "display: none;\r";
+        if (visibleRange[1] < Infinity) {
+            css += t4 + t4 + "@media (min-width: " + visibleRange[0] + "px) and (max-width: " + visibleRange[1] + "px) {\r";
+        } else {
+            css += t4 + t4 + "@media (min-width: " + visibleRange[0] + "px) {\r";
+        }
+        css += t4 + t4 + t4 + "display: block;\r";
+        css += t4 + t4 + "}\r";
+        css += t4 + "}\r";
+
+
+
+
         css += t3 + "}\r";
 
         // classes for paragraph and character styles
@@ -5216,12 +5227,18 @@ function main() {
         //
         var svelteJS = '<script>\r\t';
         svelteJS += "import { assets } from '$app/paths';\r"
-        svelteJS += '\tlet width = 100;\r';
+        svelteJS += '\tlet width = null;\r';
 
         if (settings.container_fluid == '') {
             svelteJS += '\texport let containerFluid = false;\r';
         } else {
             svelteJS += '\texport let containerFluid = true;\r';
+        }
+
+        if (settings.include_resizer_script == 'yes') {
+            svelteJS += '\texport let autoResize = false;\r';
+        } else {
+            svelteJS += '\texport let autoResize = true;\r';
         }
 
 
@@ -5414,9 +5431,9 @@ function main() {
 
         progressBar.setTitle("Writing HTML output...");
 
-        if (isTrue(settings.include_resizer_script)) {
-            responsiveJs = getResizerScript(containerId, settings);
-        }
+
+        responsiveJs = getResizerScript(containerId, settings);
+
 
         // comments
         commentBlock =
@@ -5438,7 +5455,7 @@ function main() {
         }
 
         // HTML
-        html = '<div id="' + containerId + '" class="{(containerFluid) ? "container-fluid" : "container-fixed"}" bind:clientWidth={width}>\r';
+        html = '<div id="' + containerId + '" class="{(containerFluid) ? "container-fluid" : "container-fixed"} {(autoResize) ? "auto-resize" : ""}" bind:clientWidth={width}>\r';
         if (linkSrc) {
             // optional link around content
             html +=
@@ -5477,7 +5494,7 @@ function main() {
         htmlFileDestinationFolder = docPath + settings.html_output_path;
         checkForOutputFolder(htmlFileDestinationFolder, "html_output_path");
         htmlFileDestination =
-            htmlFileDestinationFolder + pageName + '.svelte';
+            htmlFileDestinationFolder + pageName + '.svelte'
 
         if (settings.output == "one-file" && settings.project_type == "ai2html") {
             htmlFileDestination =
